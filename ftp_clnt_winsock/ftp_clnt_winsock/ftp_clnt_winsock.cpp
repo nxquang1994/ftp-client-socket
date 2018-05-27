@@ -145,11 +145,11 @@ int _tmain(int argc, char* argv[])
 	// Working process
 	while (1) {
 		char cmd[50];
+		printf("ftp> ");
 		scanf("%s", cmd);
 		if (strcmp(cmd, "exit") == 0) {
 			break;
 		}
-
 	}
 
 	return 0;
