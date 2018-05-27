@@ -152,7 +152,7 @@ int _tmain(int argc, char* argv[])
 		}
 		// TODO: process each command here
 		char tokenCmd[10];
-		sprintf(tokenCmd, "%s", cmd);
+		sscanf(cmd, "%s", tokenCmd);
 		if (strcmp(tokenCmd, "ls")==0)
 		{
 			// process list files/folders
