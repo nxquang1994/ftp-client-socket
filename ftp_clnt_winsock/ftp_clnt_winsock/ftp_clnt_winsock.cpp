@@ -150,6 +150,22 @@ int _tmain(int argc, char* argv[])
 		if (strcmp(cmd, "exit") == 0) {
 			break;
 		}
+		// TODO: process each command here
+		char tokenCmd[10];
+		sprintf(tokenCmd, "%s", cmd);
+		if (strcmp(tokenCmd, "ls")==0)
+		{
+			// process list files/folders
+		}
+		else if (strcmp(tokenCmd, "put") == 0)
+		{
+			// process upload file
+		}
+		else if (strcmp(tokenCmd, "get") == 0)
+		{
+			// Process download file
+		}
+
 	}
 
 	return 0;
