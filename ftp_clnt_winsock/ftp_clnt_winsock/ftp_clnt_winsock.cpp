@@ -152,10 +152,53 @@ int _tmain(int argc, char* argv[])
 		}
 		// TODO: process each command here
 		char tokenCmd[10];
-		sprintf(tokenCmd, "%s", cmd);
+		sscanf(cmd, "%s", tokenCmd);
 		if (strcmp(tokenCmd, "ls")==0)
 		{
+			// Create passive mode
+			char passive[5];
+			strcpy(passive, "PASV\n");
+			/// Get DTP passive information
+			tmpres = send(socketClient, passive, strlen(passive), 0);
+			memset(buf, 0, sizeof buf);
+			tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+			/// Create DTP socket
+			SOCKET socketDTP = createDTPSocket(buf);
+			/// Bind DTP socket
+			struct sockaddr_in serverDTP;
+			hostInfo serverDTPInfo = extractPassivePacket(buf);
+			serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
+			serverDTP.sin_family = AF_INET;
+			serverDTP.sin_port = htons(serverDTPInfo.port);
+			if (connect(socketDTP, (struct sockaddr*)&serverDTP, sizeof(serverDTP)) < 0)
+			{
+				cout << "Connect to server DTP error" << endl;
+				return 1;
+			}
+
 			// process list files/folders
+			char cmdSend[5];
+			strcpy(cmdSend, "LIST\n");
+			
+			// send command
+			tmpres = send(socketDTP, cmdSend, strlen(cmdSend), 0);
+
+			// Receive information
+			memset(buf, 0, sizeof buf);
+			while ((tmpres = recv(socketDTP, buf, BUFSIZ, 0)) > 0)
+			{
+				sscanf(buf, "%d", &codeftp);
+				printf("%s", buf);
+				if (codeftp != 220)
+				{
+					printf("ERROR! There is error when receive data from server. Please try again\n");
+					break;
+				}
+				else {
+					printf("%s\n", buf);
+				}
+				memset(buf, 0, tmpres);
+			}
 		}
 		else if (strcmp(tokenCmd, "put") == 0)
 		{
