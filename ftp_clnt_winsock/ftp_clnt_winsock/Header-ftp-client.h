@@ -5,3 +5,11 @@
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_FTP_PORT 21
+#define LAST_COMMA_IP_PART 4
+
+struct HostInfo {
+	char ip[16];
+	int h1;
+	int h2;
+	int port;
+};

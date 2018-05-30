@@ -44,6 +44,67 @@ char* sendCommand(char str[100])
 	return NULL;
 }
 
+int createDTPSocket(char* info) {
+	int serverDTP;
+	//SOCKET serverDTP
+	// create a socket
+	if ((serverDTP = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	{
+		cout << "Socket could not created: " << WSAGetLastError() << endl;
+	}
+	return(serverDTP);
+}
+
+HostInfo extractPassivePacket(char* buf) {
+	// 227 Entering Passive Mode (127,0,0,1,195,47)
+	char* rawInfo = strchr(buf, 40); // 40 correspomd character '('
+	int len = strlen(rawInfo);
+	HostInfo currentHost;
+	// extract IP
+	int i = 1;
+	int currentCommaIndex = 0;
+	while (currentCommaIndex < LAST_COMMA_IP_PART)
+	{
+		if (rawInfo[i] == ',')
+		{
+			currentHost.ip[i - 1] = '.'; // i start from 1
+			currentCommaIndex++;
+		}
+		else {
+			currentHost.ip[i - 1] = rawInfo[i];
+		}
+		i++;
+	}
+	currentHost.ip[i - 2] = '\0';
+
+	// extract port
+	bool isAfterComma = false;
+	int j = 0;
+	int k = 0;
+	char h1[6];
+	char h2[6];
+	while (rawInfo[i] != ')') {
+		if (!isAfterComma && rawInfo[i] != ',')
+		{
+			h1[j] = rawInfo[i];
+			j++;
+		}
+		else if (rawInfo[i] == ',')
+		{
+			isAfterComma = true;
+		}
+		else
+		{
+			h2[k] = rawInfo[i];
+			k++;
+		}
+		i++;
+	}
+	currentHost.h1 = atoi(h1);
+	currentHost.h2 = atoi(h2);
+	currentHost.port = currentHost.h1 * 256 + currentHost.h2;
+	return currentHost;
+}
 
 int _tmain(int argc, char* argv[])
 {
@@ -166,7 +227,7 @@ int _tmain(int argc, char* argv[])
 			SOCKET socketDTP = createDTPSocket(buf);
 			/// Bind DTP socket
 			struct sockaddr_in serverDTP;
-			hostInfo serverDTPInfo = extractPassivePacket(buf);
+			HostInfo serverDTPInfo = extractPassivePacket(buf);
 			serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
 			serverDTP.sin_family = AF_INET;
 			serverDTP.sin_port = htons(serverDTPInfo.port);
