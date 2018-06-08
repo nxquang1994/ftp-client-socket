@@ -32,6 +32,15 @@ void replylogcode(int code)
 		case 530:
 			printf("Not logged in.");
 			break;
+		case 250:
+			printf("Request completely.");
+			break;
+		case 421:
+			printf("Service unavailable, too many requests.");
+			break;
+		case 550:
+			printf("Directory/File is not exist");
+			break;
 	}
 	printf("\n");
 }
@@ -209,7 +218,8 @@ int _tmain(int argc, char* argv[])
 	while (1) {
 		char cmd[50];
 		printf("ftp> ");
-		scanf("%s", cmd);
+		//scanf("%[^\n]s", cmd);
+		fgets(cmd, MAX_COMMAND_LEN, stdin);
 		char tokenCmd[10];
 		sscanf(cmd, "%s", tokenCmd);
 		// TODO: process each command here
@@ -283,7 +293,22 @@ int _tmain(int argc, char* argv[])
 		{
 			// Process download file
 		}
-
+		else if (strcmp(tokenCmd, "cd") == 0) {
+			// Process change directory
+			char destPath[COMMAND_OPTION_LEN];
+			sscanf(cmd, "%*s %s", destPath);
+			char cd[MAX_COMMAND_LEN];
+			sprintf(cd, "CWD %s\n", destPath);
+			tmpres = send(socketClient, cd, strlen(cd), 0);
+			memset(buf, 0, BUFSIZ);
+			if ((tmpres = recv(socketClient, buf, BUFSIZ, 0)) > 0) {
+				sscanf(buf, "%d", &codeftp);
+				replylogcode(codeftp);
+			}
+			else {
+				printf("Receive data error, please try it later, ahuhu !!!\n");
+			}
+		}
 	}
 	
 	int retcode = closesocket(socketClient);
