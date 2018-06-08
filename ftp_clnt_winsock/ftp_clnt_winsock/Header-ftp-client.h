@@ -13,3 +13,6 @@ struct HostInfo {
 	int h2;
 	int port;
 };
+
+void errexit(const char *, ...);
+void pause(void);
