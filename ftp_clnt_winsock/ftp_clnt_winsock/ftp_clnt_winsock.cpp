@@ -210,8 +210,12 @@ int _tmain(int argc, char* argv[])
 		char cmd[50];
 		printf("ftp> ");
 		scanf("%s", cmd);
-		if (strcmp(cmd, "exit") == 0) {
-			char quit[10];
+		char tokenCmd[10];
+		sscanf(cmd, "%s", tokenCmd);
+		// TODO: process each command here
+		// Exit
+		if (strcmp(tokenCmd, "exit") == 0) {
+			char quit[COMMAND_LEN];
 			strcpy(quit, "QUIT\n");
 			tmpres = send(socketClient, quit, strlen(quit), 0);
 			memset(buf, 0, sizeof buf);
@@ -223,13 +227,12 @@ int _tmain(int argc, char* argv[])
 			}
 			break;
 		}
-		// TODO: process each command here
-		char tokenCmd[10];
-		sscanf(cmd, "%s", tokenCmd);
+
+		// List file
 		if (strcmp(tokenCmd, "ls")==0)
 		{
 			// Create passive mode
-			char passive[5];
+			char passive[COMMAND_LEN];
 			strcpy(passive, "PASV\n");
 			/// Get DTP passive information
 			tmpres = send(socketClient, passive, strlen(passive), 0);
@@ -250,7 +253,7 @@ int _tmain(int argc, char* argv[])
 			}
 
 			// process list files/folders
-			char cmdSend[5];
+			char cmdSend[COMMAND_LEN];
 			strcpy(cmdSend, "LIST\n");
 			
 			// send command
@@ -262,23 +265,12 @@ int _tmain(int argc, char* argv[])
 			while ((tmpres = recv(socketDTP, buf, BUFSIZ, 0)) > 0)
 			{
 				sscanf(buf, "%d", &codeftp);
-				printf("%s", buf);
-				/*
-				if (codeftp != 220)
-				{
-					printf("ERROR! There is error when receive data from server. Please try again\n");
-					break;
-				}
-				else {
-					printf("%s\n", buf);
-				}
-				*/
 				printf("%s\n", buf);
 				memset(buf, 0, tmpres);
 			}
 			
-			// Receive the packet: "150 Opening data channel for directory listing of "/"
-			/// and 226 Successfully transferred "/"
+			// Receive the packet: """ 150 Opening data channel for directory listing of "/"
+			/// and 226 Successfully transferred "/" """
 			tmpres = recv(socketClient, buf, BUFSIZ, 0);
 			memset(buf, 0, tmpres);
 			int retCode = closesocket(socketDTP);
@@ -293,7 +285,7 @@ int _tmain(int argc, char* argv[])
 		}
 
 	}
-
+	
 	int retcode = closesocket(socketClient);
 	if (retcode == SOCKET_ERROR)
 		errexit("Close socket failed: %d\n", WSAGetLastError());
