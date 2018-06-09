@@ -1,0 +1,44 @@
+﻿  ftp_clnt_winsock.cpp
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(9): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(284): warning C4129: 'N': unrecognized character escape sequence
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(284): warning C4129: 'M': unrecognized character escape sequence
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(135): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: see declaration of 'inet_addr'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(154): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: see declaration of 'sscanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(170): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1868): note: see declaration of 'inet_ntoa'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(172): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(174): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(180): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: see declaration of 'sscanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(192): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(194): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(200): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: see declaration of 'sscanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(213): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(219): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: see declaration of 'sscanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(224): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(234): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: see declaration of 'inet_addr'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(245): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: see declaration of 'strcpy'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(254): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: see declaration of 'sscanf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(273): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(296): warning C4996: 'inet_addr': Use inet_pton() or InetPton() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  c:\program files (x86)\windows kits\8.1\include\um\winsock2.h(1850): note: see declaration of 'inet_addr'
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(148): warning C4101: 'status': unreferenced local variable
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(148): warning C4101: 'size': unreferenced local variable
+c:\new folder\mmt\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\ftp_clnt_winsock.cpp(332): warning C4996: 'scanf': This function or variable may be unsafe. Consider using scanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1270): note: see declaration of 'scanf'
+  ftp_clnt_winsock.vcxproj -> C:\New folder\MMT\ftp-client-socket\ftp_clnt_winsock\Debug\ftp_clnt_winsock.exe
+  ftp_clnt_winsock.vcxproj -> C:\New folder\MMT\ftp-client-socket\ftp_clnt_winsock\Debug\ftp_clnt_winsock.pdb (Full PDB)
