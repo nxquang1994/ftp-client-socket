@@ -116,6 +116,81 @@ HostInfo extractPassivePacket(char* buf) {
 	return currentHost;
 }
 
+bool uploadFile(string filename, SOCKET socketClient) {
+	int tmpres, codeftp;
+	char buf[BUFSIZ + 1];
+	char passive[COMMAND_LEN];
+	strcpy(passive, "PASV\n");
+	/// Get DTP passive information
+	tmpres = send(socketClient, passive, strlen(passive), 0);
+	memset(buf, 0, sizeof buf);
+	tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+												 /// Create DTP socket
+	SOCKET socketDTP = createDTPSocket(buf);
+	/// Bind DTP socket
+	struct sockaddr_in serverDTP;
+	HostInfo serverDTPInfo = extractPassivePacket(buf);
+	serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
+	serverDTP.sin_family = AF_INET;
+	serverDTP.sin_port = htons(serverDTPInfo.port);
+	if (connect(socketDTP, (struct sockaddr*)&serverDTP, sizeof(serverDTP)) < 0)
+	{
+		cout << "Connect to server DTP error" << endl;
+		return 1;
+	}
+
+	char cmdSend[COMMAND_LEN];
+	string cmdUpload = "STOR " + filename + "\n";
+	//strcpy(cmdSend, );
+
+	// send command
+	tmpres = send(socketClient, cmdUpload.c_str(), cmdUpload.length(), 0);
+	tmpres = recv(socketClient, buf, BUFSIZ, 0);
+	sscanf(buf, "%d", &codeftp);
+	printf("%s\n", buf);
+
+
+	if (codeftp == 150) {
+		// Receive information
+		memset(buf, 0, sizeof buf);
+		//Đọc file
+		fflush(stdin);
+		//filename = "text.txt";
+		//getline(cin, filename);
+		ifstream file;
+		file.open(filename, ios::in || ios::binary);
+		string data;
+		string line;
+		getline(file, line);
+		tmpres = send(socketDTP, line.c_str(), line.length(), 0);
+		while (!file.eof())
+		{
+			getline(file, line);
+			data = "\n" + line;
+			tmpres = send(socketDTP, data.c_str(), data.length(), 0);
+		}
+		file.close();
+		int retCode = closesocket(socketDTP);
+		tmpres = recv(socketClient, buf, BUFSIZ, 0);
+
+		sscanf(buf, "%d", &codeftp);
+		printf("%s\n", buf);
+		memset(buf, 0, tmpres);
+		if (codeftp == 226) 
+		{
+			return 1;
+		}
+		else{
+			return 0;
+		}
+
+	}
+	else {
+		string err = "Không thể mở kênh truyền để upload!";
+		printf("%s\n", err.c_str());
+		return 0;
+	}
+}
 int _tmain(int argc, char* argv[])
 {
 	// ====================================
@@ -290,52 +365,15 @@ int _tmain(int argc, char* argv[])
 		}
 		else if (strcmp(tokenCmd, "put") == 0)
 		{
-			// process upload file
-			int port = rand() % (65535 - 49152) + 49152;
-			int port1 = port / 256;
-			int port2 = port % 256;
-			sprintf(buf, "PORT 127,0,0,1,%d,%d\r\n", port1, port2);
-			if (send(socketClient, buf, strlen(buf), 0) < 0)
-			{
-				cout << "Sending PORT command failed!!!";
-				exit(1);
+			string filename = "text.txt";
+			if (uploadFile(filename, socketClient)) {
+				string notify = "Upoad file \"" + filename + "\" thanh cong!";
+				printf("%s\n", notify.c_str());
 			}
-			tmpres = recv(socketClient, buf, BUFSIZ, 0);
-			printf("%s", buf);
-
-			
-			fflush(stdin);
-			string filename = "C:\New folder\MMT\ftp-client-socket\ftp_clnt_winsock\ftp_clnt_winsock\text.txt";
-			//getline(cin, filename);
-			ifstream file;
-			file.open(filename, ios::in || ios::binary);
-			
-			string command = "STOR text.txt\r\n";
-			tmpres = send(socketClient, command.c_str(), command.length(), 0);
-			tmpres = recv(socketClient, buf, BUFSIZ, 0);
-			printf("%s", buf);
-
-			//HostInfo host = extractPassivePacket(buf);
-			struct sockaddr_in server_upload;
-			server_upload.sin_addr.S_un.S_addr = inet_addr(SERVER_IP);
-			server_upload.sin_family = AF_INET;
-			server_upload.sin_port = htons(port);
-			SOCKET ClientUpload = createDTPSocket(buf);
-			if (connect(ClientUpload, (struct sockaddr*)&server_upload, sizeof(server_upload)) < 0)
-			{
-				cout << "Connect error" << endl;
-				return 1;
+			else {
+				string notify = "Upoad file \"" + filename + "\" khong thanh cong!";
+				printf("%s\n", notify.c_str());
 			}
-			string data;
-			getline(file, data);
-			file.close();
-			tmpres = send(ClientUpload, data.c_str(), data.length(), 0);
-			tmpres = recv(ClientUpload, buf, BUFSIZ, 0);
-			printf("%s", buf);
-/*
-			char port[MAXLINE], buffer[MAXLINE], char_num_blks[MAXLINE], char_num_last_blk[MAXLINE];
-			int data_port, datasock, lSize, num_blks, num_last_blk, i;
-			*/
 		}
 		else if (strcmp(tokenCmd, "get") == 0)
 		{
