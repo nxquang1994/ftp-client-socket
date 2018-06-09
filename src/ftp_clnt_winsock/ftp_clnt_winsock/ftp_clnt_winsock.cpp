@@ -6,7 +6,9 @@
 #pragma comment(lib, "Ws2_32.lib")
 #include <iostream>
 #include <string>
-#include <fstream>.
+#include <sstream>
+#include <fstream>
+#include <vector>
 using namespace std;
 #define MAXLINE 4096
 
@@ -116,7 +118,7 @@ HostInfo extractPassivePacket(char* buf) {
 	return currentHost;
 }
 
-bool uploadFile(string filename, SOCKET socketClient) {
+int uploadFile(string filename, SOCKET socketClient) {
 	int tmpres, codeftp;
 	char buf[BUFSIZ + 1];
 	char passive[COMMAND_LEN];
@@ -136,7 +138,7 @@ bool uploadFile(string filename, SOCKET socketClient) {
 	if (connect(socketDTP, (struct sockaddr*)&serverDTP, sizeof(serverDTP)) < 0)
 	{
 		cout << "Connect to server DTP error" << endl;
-		return 1;
+		return 0;
 	}
 
 	char cmdSend[COMMAND_LEN];
@@ -147,7 +149,7 @@ bool uploadFile(string filename, SOCKET socketClient) {
 	tmpres = send(socketClient, cmdUpload.c_str(), cmdUpload.length(), 0);
 	tmpres = recv(socketClient, buf, BUFSIZ, 0);
 	sscanf(buf, "%d", &codeftp);
-	printf("%s\n", buf);
+	//printf("%s\n", buf);
 
 
 	if (codeftp == 150) {
@@ -174,15 +176,9 @@ bool uploadFile(string filename, SOCKET socketClient) {
 		tmpres = recv(socketClient, buf, BUFSIZ, 0);
 
 		sscanf(buf, "%d", &codeftp);
-		printf("%s\n", buf);
+		//printf("%s\n", buf);
 		memset(buf, 0, tmpres);
-		if (codeftp == 226) 
-		{
-			return 1;
-		}
-		else{
-			return 0;
-		}
+		return codeftp;
 
 	}
 	else {
@@ -190,6 +186,58 @@ bool uploadFile(string filename, SOCKET socketClient) {
 		printf("%s\n", err.c_str());
 		return 0;
 	}
+}
+
+int downloadFile(string filename, SOCKET socketClient) {
+	int tmpres, codeftp;
+	char buf[BUFSIZ + 1];
+	// Create passive mode
+	char passive[COMMAND_LEN];
+	strcpy(passive, "PASV\n");
+	/// Get DTP passive information
+	tmpres = send(socketClient, passive, strlen(passive), 0);
+	memset(buf, 0, sizeof buf);
+	tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+												 /// Create DTP socket
+	SOCKET socketDTP = createDTPSocket(buf);
+	/// Bind DTP socket
+	struct sockaddr_in serverDTP;
+	HostInfo serverDTPInfo = extractPassivePacket(buf);
+	serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
+	serverDTP.sin_family = AF_INET;
+	serverDTP.sin_port = htons(serverDTPInfo.port);
+	if (connect(socketDTP, (struct sockaddr*)&serverDTP, sizeof(serverDTP)) < 0)
+	{
+		cout << "Connect to server DTP error" << endl;
+		return 1;
+	}
+
+	char cmdSend[COMMAND_LEN];
+	string cmdUpload = "RETR " + filename + "\n";
+	//strcpy(cmdSend, );
+
+	// send command
+	tmpres = send(socketClient, cmdUpload.c_str(), cmdUpload.length(), 0);
+	tmpres = recv(socketClient, buf, BUFSIZ, 0);
+	sscanf(buf, "%d", &codeftp);
+
+	// Receive information
+	memset(buf, 0, sizeof buf);
+	while ((tmpres = recv(socketDTP, buf, BUFSIZ, 0)) > 0)
+	{
+		sscanf(buf, "%d", &codeftp);
+		printf("%s\n", buf);
+		ofstream file;
+		file.open(filename, ios::in || ios::binary);
+		string data = string(buf);
+		file << data;
+		memset(buf, 0, tmpres);
+	}
+	tmpres = recv(socketClient, buf, BUFSIZ, 0);
+	sscanf(buf, "%d", &codeftp);
+	memset(buf, 0, tmpres);
+	int retCode = closesocket(socketDTP);
+	return codeftp;
 }
 int _tmain(int argc, char* argv[])
 {
@@ -299,7 +347,28 @@ int _tmain(int argc, char* argv[])
 		//scanf("%[^\n]s", cmd);
 		fgets(cmd, MAX_COMMAND_LEN, stdin);
 		char tokenCmd[10];
+		vector<string> param;
 		sscanf(cmd, "%s", tokenCmd);
+		
+		stringstream ss(cmd);
+		string token;
+		int i = 0;
+		while (getline(ss, token, ' ')) 
+		{
+			if (i > 0) {
+				int len = token.length();
+				char* c_filename = new char[len];
+				sscanf(token.c_str(), "%s", c_filename);
+				if (c_filename[len - 1] == ',')
+				{
+					token.replace(len - 1, 1, "");
+					sscanf(token.c_str(), "%s", c_filename);
+				}
+					
+				param.push_back(string(c_filename));
+			}
+			i++;
+		}
 		// TODO: process each command here
 		// Exit
 		if (strcmp(tokenCmd, "exit") == 0) {
@@ -365,8 +434,9 @@ int _tmain(int argc, char* argv[])
 		}
 		else if (strcmp(tokenCmd, "put") == 0)
 		{
-			string filename = "text.txt";
-			if (uploadFile(filename, socketClient)) {
+			string filename = param[0];//"text.txt";
+			int returnCode = uploadFile(filename, socketClient);
+			if (returnCode == 226) {
 				string notify = "Upoad file \"" + filename + "\" thanh cong!";
 				printf("%s\n", notify.c_str());
 			}
@@ -375,9 +445,62 @@ int _tmain(int argc, char* argv[])
 				printf("%s\n", notify.c_str());
 			}
 		}
+		else if (strcmp(tokenCmd, "mput") == 0)
+		{
+			int i = 0;
+
+			while (i < param.size()) {
+				string filename = param[i];
+				int returnCode = uploadFile(filename, socketClient);
+				if (returnCode == 226) {
+					string notify = "Upoad file \"" + filename + "\" thanh cong!";
+					printf("%s\n", notify.c_str());
+				}
+				else {
+					string notify = "Upoad file \"" + filename + "\" khong thanh cong!";
+					printf("%s\n", notify.c_str());
+					break;
+				}
+				i++;
+			}
+			
+		}
 		else if (strcmp(tokenCmd, "get") == 0)
 		{
 			// Process download file
+			string filename = param[0];
+			int returnCode = downloadFile(filename, socketClient);
+			//printf("%d", returnCode);
+			if (returnCode == 226)
+			{
+				string notify = "Download file \"" + filename + "\" thanh cong!";
+				printf("%s\n", notify.c_str());
+			}
+			else
+			{
+				string notify = "Download file \"" + filename + "\" that bai!";
+				printf("%s\n", notify.c_str());
+			}
+		}
+		else if (strcmp(tokenCmd, "mget") == 0)
+		{
+			int i = 0;
+
+			while (i < param.size()) {
+				string filename = param[i];
+				int returnCode = downloadFile(filename, socketClient);
+				//printf("%d", returnCode);
+				if (returnCode == 226)
+				{
+					string notify = "Download file \"" + filename + "\" thanh cong!";
+					printf("%s\n", notify.c_str());
+				}
+				else
+				{
+					string notify = "Download file \"" + filename + "\" that bai!";
+					printf("%s\n", notify.c_str());
+				}
+			}
 		}
 		else if (strcmp(tokenCmd, "cd") == 0) {
 			// Process change directory
