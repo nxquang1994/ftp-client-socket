@@ -10,8 +10,6 @@
 using namespace std;
 #define MAXLINE 4096
 
-void errexit(const char *, ...);
-void pause(void);
 void replylogcode(int code)
 {
 	switch(code){
@@ -36,6 +34,15 @@ void replylogcode(int code)
 			break;
 		case 530:
 			printf("Not logged in.");
+			break;
+		case 250:
+			printf("Request completely.");
+			break;
+		case 421:
+			printf("Service unavailable, too many requests.");
+			break;
+		case 550:
+			printf("Directory/File is not exist");
 			break;
 	}
 	printf("\n");
@@ -207,20 +214,38 @@ int _tmain(int argc, char* argv[])
 
 	// ====================================
 	// Working process
+	// Create passive mode
+	bool isPassiveMode = false;
+
+	// Now, start to run
 	while (1) {
 		char cmd[50];
 		printf("ftp> ");
-		scanf("%s", cmd);
-		if (strcmp(cmd, "exit") == 0) {
-			break;
-		}
-		// TODO: process each command here
+		//scanf("%[^\n]s", cmd);
+		fgets(cmd, MAX_COMMAND_LEN, stdin);
 		char tokenCmd[10];
 		sscanf(cmd, "%s", tokenCmd);
+		// TODO: process each command here
+		// Exit
+		if (strcmp(tokenCmd, "exit") == 0) {
+			char quit[COMMAND_LEN];
+			strcpy(quit, "QUIT\n");
+			tmpres = send(socketClient, quit, strlen(quit), 0);
+			memset(buf, 0, sizeof buf);
+			tmpres = recv(socketClient, buf, BUFSIZ, 0);
+			sscanf(buf, "%d", &codeftp);
+			if (codeftp != 221)
+			{
+				printf("Quit server failed, douma\n");
+			}
+			break;
+		}
+
+		// List file
 		if (strcmp(tokenCmd, "ls")==0)
 		{
 			// Create passive mode
-			char passive[5];
+			char passive[COMMAND_LEN];
 			strcpy(passive, "PASV\n");
 			/// Get DTP passive information
 			tmpres = send(socketClient, passive, strlen(passive), 0);
@@ -241,28 +266,27 @@ int _tmain(int argc, char* argv[])
 			}
 
 			// process list files/folders
-			char cmdSend[5];
+			char cmdSend[COMMAND_LEN];
 			strcpy(cmdSend, "LIST\n");
 			
 			// send command
-			tmpres = send(socketDTP, cmdSend, strlen(cmdSend), 0);
+			tmpres = send(socketClient, cmdSend, strlen(cmdSend), 0);
+			//tmpres = send(socketDTP, cmdSend, strlen(cmdSend), 0);
 
 			// Receive information
 			memset(buf, 0, sizeof buf);
 			while ((tmpres = recv(socketDTP, buf, BUFSIZ, 0)) > 0)
 			{
 				sscanf(buf, "%d", &codeftp);
-				printf("%s", buf);
-				if (codeftp != 220)
-				{
-					printf("ERROR! There is error when receive data from server. Please try again\n");
-					break;
-				}
-				else {
-					printf("%s\n", buf);
-				}
+				printf("%s\n", buf);
 				memset(buf, 0, tmpres);
 			}
+			
+			// Receive the packet: """ 150 Opening data channel for directory listing of "/"
+			/// and 226 Successfully transferred "/" """
+			tmpres = recv(socketClient, buf, BUFSIZ, 0);
+			memset(buf, 0, tmpres);
+			int retCode = closesocket(socketDTP);
 		}
 		else if (strcmp(tokenCmd, "put") == 0)
 		{
@@ -317,10 +341,45 @@ int _tmain(int argc, char* argv[])
 		{
 			// Process download file
 		}
-
+		else if (strcmp(tokenCmd, "cd") == 0) {
+			// Process change directory
+			char destPath[COMMAND_OPTION_LEN];
+			sscanf(cmd, "%*s %s", destPath);
+			char cd[MAX_COMMAND_LEN];
+			sprintf(cd, "CWD %s\n", destPath);
+			tmpres = send(socketClient, cd, strlen(cd), 0);
+			memset(buf, 0, BUFSIZ);
+			if ((tmpres = recv(socketClient, buf, BUFSIZ, 0)) > 0) {
+				sscanf(buf, "%d", &codeftp);
+				replylogcode(codeftp);
+			}
+			else {
+				printf("Receive data error, please try it later, ahuhu !!!\n");
+			}
+		}
 	}
+	
+	int retcode = closesocket(socketClient);
+	if (retcode == SOCKET_ERROR)
+		errexit("Close socket failed: %d\n", WSAGetLastError());
+
+	retcode = WSACleanup();
+	if (retcode == SOCKET_ERROR)
+		errexit("Cleanup failed: %d\n", WSAGetLastError());
 
 	return 0;
+}
+
+void errexit(const char *format, ...)
+{
+	va_list	args;
+
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	WSACleanup();
+	pause();
+	exit(1);
 }
 
 
