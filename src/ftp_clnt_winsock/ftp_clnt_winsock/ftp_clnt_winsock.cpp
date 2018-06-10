@@ -159,19 +159,53 @@ int uploadFile(string filename, SOCKET socketClient) {
 		fflush(stdin);
 		//filename = "text.txt";
 		//getline(cin, filename);
-		ifstream file;
-		file.open(filename, ios::in || ios::binary);
+		ifstream file(filename, ios::in || ios::binary);
 		string data;
 		string line;
 		getline(file, line);
 		tmpres = send(socketDTP, line.c_str(), line.length(), 0);
-		while (!file.eof())
+		if (file)
 		{
-			getline(file, line);
-			data = "\n" + line;
-			tmpres = send(socketDTP, data.c_str(), data.length(), 0);
+			// get length of file:
+			int length;
+			file.seekg(0, file.end);
+			int tmpLen = file.tellg();
+			if (tmpLen)
+			{
+				length = tmpLen;
+			}
+			
+			file.seekg(0, file.beg);
+			int numBlock = length / BUFSIZ;
+			int size_lastBlock = length % BUFSIZ;
+			int curBlock = 0;
+			char * buffer = new char[length];
+			file.read(buffer, length);
+
+			tmpres = send(socketDTP, buffer, strlen(buffer), 0);
+			//while (!file.eof())
+			//{
+			//	/*getline(file, line);
+			//	data = "\n" + line;*/
+			//	if (curBlock < numBlock)
+			//	{
+			//		char * buffer = new char[BUFSIZ];
+			//		file.read(buffer, BUFSIZ);
+
+			//		tmpres = send(socketDTP, buffer, strlen(buffer), 0);
+			//		printf("%s", buffer);
+			//	}
+			//	else
+			//	{
+			//		char * buffer = new char[size_lastBlock];
+			//		file.read(buffer, size_lastBlock);
+			//		tmpres = send(socketDTP, buffer, strlen(buffer), 0);
+			//	}
+			//	curBlock++;
+			//}
+			file.close();
 		}
-		file.close();
+		
 		int retCode = closesocket(socketDTP);
 		tmpres = recv(socketClient, buf, BUFSIZ, 0);
 
@@ -227,8 +261,7 @@ int downloadFile(string filename, SOCKET socketClient) {
 	{
 		sscanf(buf, "%d", &codeftp);
 		printf("%s\n", buf);
-		ofstream file;
-		file.open(filename, ios::in || ios::binary);
+		ofstream file(filename, ios::in || ios::binary);
 		string data = string(buf);
 		file << data;
 		memset(buf, 0, tmpres);
@@ -517,6 +550,10 @@ int _tmain(int argc, char* argv[])
 			else {
 				printf("Receive data error, please try it later, ahuhu !!!\n");
 			}
+		}
+		else
+		{
+
 		}
 	}
 	
