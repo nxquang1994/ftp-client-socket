@@ -14,38 +14,38 @@ using namespace std;
 
 void replylogcode(int code)
 {
-	switch(code){
-		case 200:
-			printf("Command okay");
-			break;
-		case 500:
-			printf("Syntax error, command unrecognized.");
-			printf("This may include errors such as command line too long.");
-			break;
-		case 501:
-			printf("Syntax error in parameters or arguments.");
-			break;
-		case 202:
-			printf("Command not implemented, superfluous at this site.");
-			break;
-		case 502:
-			printf("Command not implemented.");
-			break;
-		case 503:
-			printf("Bad sequence of commands.");
-			break;
-		case 530:
-			printf("Not logged in.");
-			break;
-		case 250:
-			printf("Request completely.");
-			break;
-		case 421:
-			printf("Service unavailable, too many requests.");
-			break;
-		case 550:
-			printf("Directory/File is not exist");
-			break;
+	switch (code) {
+	case 200:
+		printf("Command okay");
+		break;
+	case 500:
+		printf("Syntax error, command unrecognized.");
+		printf("This may include errors such as command line too long.");
+		break;
+	case 501:
+		printf("Syntax error in parameters or arguments.");
+		break;
+	case 202:
+		printf("Command not implemented, superfluous at this site.");
+		break;
+	case 502:
+		printf("Command not implemented.");
+		break;
+	case 503:
+		printf("Bad sequence of commands.");
+		break;
+	case 530:
+		printf("Not logged in.");
+		break;
+	case 250:
+		printf("Request completely.");
+		break;
+	case 421:
+		printf("Service unavailable, too many requests.");
+		break;
+	case 550:
+		printf("Directory/File is not exist");
+		break;
 	}
 	printf("\n");
 }
@@ -56,7 +56,7 @@ char* sendCommand(char str[100])
 	return NULL;
 }
 
-int createDTPSocket(char* info) {
+int createDTPSocket() {
 	int serverDTP;
 	//SOCKET serverDTP
 	// create a socket
@@ -118,20 +118,14 @@ HostInfo extractPassivePacket(char* buf) {
 	return currentHost;
 }
 
-int uploadFile(string filename, SOCKET socketClient) {
+int uploadFile(string filename, SOCKET socketClient, char* str_port) {
 	int tmpres, codeftp;
 	char buf[BUFSIZ + 1];
-	char passive[COMMAND_LEN];
-	strcpy(passive, "PASV\n");
-	/// Get DTP passive information
-	tmpres = send(socketClient, passive, strlen(passive), 0);
-	memset(buf, 0, sizeof buf);
-	tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
-												 /// Create DTP socket
-	SOCKET socketDTP = createDTPSocket(buf);
+
+	SOCKET socketDTP = createDTPSocket();
 	/// Bind DTP socket
 	struct sockaddr_in serverDTP;
-	HostInfo serverDTPInfo = extractPassivePacket(buf);
+	HostInfo serverDTPInfo = extractPassivePacket(str_port);
 	serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
 	serverDTP.sin_family = AF_INET;
 	serverDTP.sin_port = htons(serverDTPInfo.port);
@@ -174,7 +168,7 @@ int uploadFile(string filename, SOCKET socketClient) {
 			{
 				length = tmpLen;
 			}
-			
+
 			file.seekg(0, file.beg);
 			int numBlock = length / BUFSIZ;
 			int size_lastBlock = length % BUFSIZ;
@@ -205,7 +199,7 @@ int uploadFile(string filename, SOCKET socketClient) {
 			//}
 			file.close();
 		}
-		
+
 		int retCode = closesocket(socketDTP);
 		tmpres = recv(socketClient, buf, BUFSIZ, 0);
 
@@ -216,27 +210,20 @@ int uploadFile(string filename, SOCKET socketClient) {
 
 	}
 	else {
-		string err = "Không thể mở kênh truyền để upload!";
+		string err = "Không thể mở kênh truyền để upload!\n";
 		printf("%s\n", err.c_str());
 		return 0;
 	}
 }
 
-int downloadFile(string filename, SOCKET socketClient) {
+int downloadFile(string filename, SOCKET socketClient, char* str_port) {
 	int tmpres, codeftp;
 	char buf[BUFSIZ + 1];
 	// Create passive mode
-	char passive[COMMAND_LEN];
-	strcpy(passive, "PASV\n");
-	/// Get DTP passive information
-	tmpres = send(socketClient, passive, strlen(passive), 0);
-	memset(buf, 0, sizeof buf);
-	tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
-												 /// Create DTP socket
-	SOCKET socketDTP = createDTPSocket(buf);
+	SOCKET socketDTP = createDTPSocket();
 	/// Bind DTP socket
 	struct sockaddr_in serverDTP;
-	HostInfo serverDTPInfo = extractPassivePacket(buf);
+	HostInfo serverDTPInfo = extractPassivePacket(str_port);
 	serverDTP.sin_addr.S_un.S_addr = inet_addr(serverDTPInfo.ip);
 	serverDTP.sin_family = AF_INET;
 	serverDTP.sin_port = htons(serverDTPInfo.port);
@@ -278,6 +265,7 @@ int _tmain(int argc, char* argv[])
 	// CREATE SOCKET
 	WSADATA wsa;
 	SOCKET socketClient;
+
 	cout << "Initilize Winsock ... " << endl;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 	{
@@ -371,7 +359,7 @@ int _tmain(int argc, char* argv[])
 	// ====================================
 	// Working process
 	// Create passive mode
-	bool isPassiveMode = false;
+	bool isPassiveMode = true;
 
 	// Now, start to run
 	while (1) {
@@ -382,11 +370,11 @@ int _tmain(int argc, char* argv[])
 		char tokenCmd[10];
 		vector<string> param;
 		sscanf(cmd, "%s", tokenCmd);
-		
+
 		stringstream ss(cmd);
 		string token;
 		int i = 0;
-		while (getline(ss, token, ' ')) 
+		while (getline(ss, token, ' '))
 		{
 			if (i > 0) {
 				int len = token.length();
@@ -397,7 +385,7 @@ int _tmain(int argc, char* argv[])
 					token.replace(len - 1, 1, "");
 					sscanf(token.c_str(), "%s", c_filename);
 				}
-					
+
 				param.push_back(string(c_filename));
 			}
 			i++;
@@ -419,7 +407,7 @@ int _tmain(int argc, char* argv[])
 		}
 
 		// List file
-		if (strcmp(tokenCmd, "ls")==0)
+		if (strcmp(tokenCmd, "ls") == 0)
 		{
 			// Create passive mode
 			char passive[COMMAND_LEN];
@@ -428,8 +416,8 @@ int _tmain(int argc, char* argv[])
 			tmpres = send(socketClient, passive, strlen(passive), 0);
 			memset(buf, 0, sizeof buf);
 			tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
-			/// Create DTP socket
-			SOCKET socketDTP = createDTPSocket(buf);
+														 /// Create DTP socket
+			SOCKET socketDTP = createDTPSocket();
 			/// Bind DTP socket
 			struct sockaddr_in serverDTP;
 			HostInfo serverDTPInfo = extractPassivePacket(buf);
@@ -445,7 +433,7 @@ int _tmain(int argc, char* argv[])
 			// process list files/folders
 			char cmdSend[COMMAND_LEN];
 			strcpy(cmdSend, "LIST\n");
-			
+
 			// send command
 			tmpres = send(socketClient, cmdSend, strlen(cmdSend), 0);
 			//tmpres = send(socketDTP, cmdSend, strlen(cmdSend), 0);
@@ -458,7 +446,7 @@ int _tmain(int argc, char* argv[])
 				printf("%s\n", buf);
 				memset(buf, 0, tmpres);
 			}
-			
+
 			// Receive the packet: """ 150 Opening data channel for directory listing of "/"
 			/// and 226 Successfully transferred "/" """
 			tmpres = recv(socketClient, buf, BUFSIZ, 0);
@@ -467,8 +455,34 @@ int _tmain(int argc, char* argv[])
 		}
 		else if (strcmp(tokenCmd, "put") == 0)
 		{
+			if (isPassiveMode==true) 
+			{
+				char passive[COMMAND_LEN];
+				strcpy(passive, "PASV\n");
+				tmpres = send(socketClient, passive, strlen(passive), 0);
+				memset(buf, 0, sizeof buf);
+				tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+			}
+			else {
+				int port = rand() % (65535 - 49152) + 49152;
+				stringstream ss;
+				ss << port / 256;
+				string port1 = ss.str();
+				ss << port % 256;
+				string port2 = ss.str();
+				string cmd = "PORT 127,0,0,1," + port1 + "," + port2 + "\n";
+				//sprintf(buf, "PORT 127,0,0,1,%s,%s\r\n", port1, port2);
+				
+				tmpres = send(socketClient, cmd.c_str(), cmd.length(), 0);
+				memset(buf, 0, sizeof buf);
+				tmpres = recv(socketClient, buf, BUFSIZ, 0);
+				memset(buf, 0, sizeof buf);
+				string str_port = "227 Entering Passive Mode (127,0,0,1," + port1 + "," + port2 + ")";
+				strcpy(buf, str_port.c_str());
+
+			}
 			string filename = param[0];//"text.txt";
-			int returnCode = uploadFile(filename, socketClient);
+			int returnCode = uploadFile(filename, socketClient, buf);
 			if (returnCode == 226) {
 				string notify = "Upoad file \"" + filename + "\" thanh cong!";
 				printf("%s\n", notify.c_str());
@@ -483,8 +497,33 @@ int _tmain(int argc, char* argv[])
 			int i = 0;
 
 			while (i < param.size()) {
+				if (isPassiveMode) {
+					char passive[COMMAND_LEN];
+					strcpy(passive, "PASV\n");
+					tmpres = send(socketClient, passive, strlen(passive), 0);
+					memset(buf, 0, sizeof buf);
+					tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+				}
+				else {
+					int port = rand() % (65535 - 49152) + 49152;
+					stringstream ss;
+					ss << port / 256;
+					string port1 = ss.str();
+					ss << port % 256;
+					string port2 = ss.str();
+					string cmd = "PORT 127,0,0,1," + port1 + "," + port2 + "\n";
+					//sprintf(buf, "PORT 127,0,0,1,%s,%s\r\n", port1, port2);
+
+					tmpres = send(socketClient, cmd.c_str(), cmd.length(), 0);
+					memset(buf, 0, sizeof buf);
+					tmpres = recv(socketClient, buf, BUFSIZ, 0);
+					memset(buf, 0, sizeof buf);
+					string str_port = "227 Entering Passive Mode (127,0,0,1," + port1 + "," + port2 + ")";
+					strcpy(buf, str_port.c_str());
+
+				}
 				string filename = param[i];
-				int returnCode = uploadFile(filename, socketClient);
+				int returnCode = uploadFile(filename, socketClient, buf);
 				if (returnCode == 226) {
 					string notify = "Upoad file \"" + filename + "\" thanh cong!";
 					printf("%s\n", notify.c_str());
@@ -496,13 +535,39 @@ int _tmain(int argc, char* argv[])
 				}
 				i++;
 			}
-			
+
 		}
 		else if (strcmp(tokenCmd, "get") == 0)
 		{
 			// Process download file
+			if (isPassiveMode) {
+				char passive[COMMAND_LEN];
+				strcpy(passive, "PASV\n");
+				tmpres = send(socketClient, passive, strlen(passive), 0);
+				memset(buf, 0, sizeof buf);
+				tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+			}
+			else {
+				int port = rand() % (65535 - 49152) + 49152;
+				stringstream ss;
+				ss << port / 256;
+				string port1 = ss.str();
+				ss << port % 256;
+				string port2 = ss.str();
+				string cmd = "PORT 127,0,0,1," + port1 + "," + port2 + "\n";
+				strcpy(buf, cmd.c_str());
+				//sprintf(buf, "PORT 127,0,0,1,%s,%s\r\n", port1, port2);
+
+				tmpres = send(socketClient, buf, strlen(buf), 0);
+				memset(buf, 0, sizeof buf);
+				tmpres = recv(socketClient, buf, BUFSIZ, 0);
+				memset(buf, 0, sizeof buf);
+				string str_port = "227 Entering Passive Mode (127,0,0,1," + port1 + "," + port2 + ")";
+				strcpy(buf, str_port.c_str());
+
+			}
 			string filename = param[0];
-			int returnCode = downloadFile(filename, socketClient);
+			int returnCode = downloadFile(filename, socketClient, buf);
 			//printf("%d", returnCode);
 			if (returnCode == 226)
 			{
@@ -520,8 +585,33 @@ int _tmain(int argc, char* argv[])
 			int i = 0;
 
 			while (i < param.size()) {
+				if (isPassiveMode) {
+					char passive[COMMAND_LEN];
+					strcpy(passive, "PASV\n");
+					tmpres = send(socketClient, passive, strlen(passive), 0);
+					memset(buf, 0, sizeof buf);
+					tmpres = recv(socketClient, buf, BUFSIZ, 0); // 227 Entering Passive Mode (127,0,0,1,195,47)
+				}
+				else {
+					int port = rand() % (65535 - 49152) + 49152;
+					stringstream ss;
+					ss << port / 256;
+					string port1 = ss.str();
+					ss << port % 256;
+					string port2 = ss.str();
+					string cmd = "PORT 127,0,0,1," + port1 + "," + port2 + "\n";
+					//sprintf(buf, "PORT 127,0,0,1,%s,%s\r\n", port1, port2);
+
+					tmpres = send(socketClient, cmd.c_str(), cmd.length(), 0);
+					memset(buf, 0, sizeof buf);
+					tmpres = recv(socketClient, buf, BUFSIZ, 0);
+					memset(buf, 0, sizeof buf);
+					string str_port = "227 Entering Passive Mode (127,0,0,1," + port1 + "," + port2 + ")";
+					strcpy(buf, str_port.c_str());
+
+				}
 				string filename = param[i];
-				int returnCode = downloadFile(filename, socketClient);
+				int returnCode = downloadFile(filename, socketClient, buf);
 				//printf("%d", returnCode);
 				if (returnCode == 226)
 				{
@@ -551,12 +641,22 @@ int _tmain(int argc, char* argv[])
 				printf("Receive data error, please try it later, ahuhu !!!\n");
 			}
 		}
+		else if (strcmp(tokenCmd, "passive") == 0)
+		{
+			isPassiveMode = true;
+			printf("Passive mode is on. Off Active mode!\n");
+		}
+		else if (strcmp(tokenCmd, "active") == 0)
+		{
+			isPassiveMode = false;
+			printf("Active mode is on. Off Passive mode!\n");
+		}
 		else
 		{
 
 		}
 	}
-	
+
 	int retcode = closesocket(socketClient);
 	if (retcode == SOCKET_ERROR)
 		errexit("Close socket failed: %d\n", WSAGetLastError());
